@@ -74,13 +74,14 @@ assert parse_response(INFO_RESPONSE, 'name', 'mac') == {'name': 'werkplaats', 'm
 
 ## program ##
 
-IP_ADDR_A = "192.168.1.66"
-IP_ADDR_B = "192.168.1.66"
+from sys import argv
+ip_addr = argv[1]
+
 SENSORS =   [    'htemp',   'hhum',      'otemp',   'cmpfreq',  'energy']
 LABELS = ['T-in [ºC]', 'RV [%]', 'T-out [ºC]', 'Freq [Hz]', 'E [kWh]']
 assert len(SENSORS) == len(LABELS)
 
-info = http_get(IP_ADDR_A, "common/basic_info")
+info = http_get(ip_addr, "common/basic_info")
 sensor_name = info['name']
 filename = "%s_sensors.csv" % sensor_name
 print "Logging to:", filename
@@ -90,8 +91,8 @@ with open(filename, "a+") as f:
         f.write('Date, ' + ', '.join(LABELS) + '\r\n')
 
     while True:
-        timestamp, E = get_time_and_energy(IP_ADDR_A)
-        sensor_values = http_get(IP_ADDR_A, "aircon/get_sensor_info")
+        timestamp, E = get_time_and_energy(ip_addr)
+        sensor_values = http_get(ip_addr, "aircon/get_sensor_info")
         sensor_values['energy'] = E
         line = timestamp.strftime("%Y-%m-%d %H:%M:%S, ") + ', '.join(str(sensor_values[k]) for k in SENSORS) + '\r\n'
         f.write(line)

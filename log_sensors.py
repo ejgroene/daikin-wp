@@ -30,7 +30,7 @@ for name in unit_names:
 
 with open(filename, "a") as f:
     if f.tell() == 0:
-        f.write(', '.join(header) + '\r\n')
+        f.write(u', '.join(header).encode('utf-8') + '\r\n')
 
     while True:
         time_energy = [get_time_and_energy(ip_addr) for ip_addr in ip_addresses]

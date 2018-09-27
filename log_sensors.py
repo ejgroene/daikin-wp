@@ -5,7 +5,7 @@ from sensor_lib import http_get, get_time_and_energy
 from time import sleep
 from sys import argv
 
-OUTDOOR_LABELS = ['T-out [ºC]', 'Freq [Hz]']
+OUTDOOR_LABELS = [u'T-out [ºC]', 'Freq [Hz]']
 INDOOR_LABELS = [u'T-{0} [ºC]', 'E-{0} [kWh]']
 
 OUTDOOR_SENSORS = ['{otemp}', '{cmpfreq}']
@@ -14,7 +14,8 @@ INDOOR_SENSORS = ['{htemp}', '{energy}']
 assert len(OUTDOOR_SENSORS) == len(OUTDOOR_LABELS)
 assert len(INDOOR_SENSORS) == len(INDOOR_LABELS)
 
-ip_addresses = argv[1:]
+interval = int(argv[1])
+ip_addresses = argv[2:]
 
 unit_info = [http_get(ip_addr, "common/basic_info") for ip_addr in ip_addresses]
 unit_names = [info['name'] for info in unit_info]
@@ -26,9 +27,8 @@ print "Logging to:", filename
 header = ['Date'] + OUTDOOR_LABELS
 for name in unit_names:
     header += [label.format(name) for label in INDOOR_LABELS]
-print ', '.join(header)
 
-with open(filename, "a+") as f:
+with open(filename, "a") as f:
     if f.tell() == 0:
         f.write(', '.join(header) + '\r\n')
 
@@ -46,5 +46,5 @@ with open(filename, "a+") as f:
 
         f.write(', '.join(line) + '\r\n')
         f.flush()
-        sleep(1)
+        sleep(interval)
 

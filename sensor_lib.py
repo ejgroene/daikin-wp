@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from urllib2 import urlopen, unquote
+from urllib.request import urlopen, unquote
 from datetime import datetime
 from time import sleep
 
 ## code ##
 
 def parse_response(response, *keys):
-    return {k: unquote(v) for (k,v) in (kv.split('=') for kv in response.split(',')) if not keys or k in keys}
+    return {unquote(k): unquote(v)
+                for (k,v) in (kv.split(b'=')
+                    for kv in response.split(b','))
+                if not keys or unquote(k) in keys}
 
 def http_get(ip_addr, path, *keys):
     response = urlopen("http://%s/%s" % (ip_addr, path)).read()
@@ -49,11 +52,16 @@ def get_time_and_energy(ip_addr):
 
 ## test ##
 
-INFO_RESPONSE = "ret=OK,type=aircon,reg=eu,dst=1,ver=3_3_1,pow=0,err=0,location=0,name=%77%65%72%6b%70%6c%61%61%74%73,icon=5,method=home only,port=30051,id=,pw=,lpw_flag=0,adp_kind=2,pv=3.20,cpv=3,cpv_minor=20,led=1,en_setzone=1,mac=A0CC2BD73D31,adp_mode=run,en_hol=0,grp_name=,en_grp=0"
+INFO_RESPONSE = b"ret=OK,type=aircon,reg=eu,dst=1,ver=3_3_1,pow=0,err=0,location=0,name=%77%65%72%6b%70%6c%61%61%74%73,icon=5,method=home only,port=30051,id=,pw=,lpw_flag=0,adp_kind=2,pv=3.20,cpv=3,cpv_minor=20,led=1,en_setzone=1,mac=A0CC2BD73D31,adp_mode=run,en_hol=0,grp_name=,en_grp=0"
 
-POWER_RESPONSE = "ret=OK,curr_day_heat=0/0/0/0/0/0/0/0/0/0/0/3/2/2/3/0/0/0/0/0/0/0/0/0,prev_1day_heat=0/0/0/0/0/0/0/0/0/0/0/6/6/6/5/0/0/0/0/0/0/0/0/0,prev_2day_heat=4/5/4/4/5/4/5/4/5/5/4/5/4/3/4/2/2/2/0/0/0/0/0/0,prev_3day_heat=4/4/4/3/3/4/3/4/3/5/4/5/4/3/3/2/2/2/3/4/3/3/4/5,prev_4day_heat=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/2/3/3/4/3,prev_5day_heat=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_6day_heat=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,curr_day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_1day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_2day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_3day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_4day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_5day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_6day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0"
+info = parse_response(INFO_RESPONSE)
+assert info == {'pow': '0', 'grp_name': '', 'port': '30051', 'adp_kind': '2', 'ver': '3_3_1', 'pw': '', 'dst': '1', 'ret': 'OK', 'id': '', 'en_setzone': '1', 'location': '0', 'en_grp': '0', 'cpv_minor': '20', 'en_hol': '0', 'type': 'aircon', 'method': 'home only', 'led': '1', 'mac': 'A0CC2BD73D31', 'lpw_flag': '0', 'pv': '3.20', 'icon': '5', 'name': 'werkplaats', 'err': '0', 'adp_mode': 'run', 'reg': 'eu', 'cpv': '3'}, info
 
-SENSOR_RESPONSE = "ret=OK,htemp=23.0,hhum=-,otemp=16.0,err=10000,cmpfreq=16"
+info = parse_response(INFO_RESPONSE, 'name', 'mac')
+assert info == {'name': 'werkplaats', 'mac': 'A0CC2BD73D31'}, info
+
+
+POWER_RESPONSE = b"ret=OK,curr_day_heat=0/0/0/0/0/0/0/0/0/0/0/3/2/2/3/0/0/0/0/0/0/0/0/0,prev_1day_heat=0/0/0/0/0/0/0/0/0/0/0/6/6/6/5/0/0/0/0/0/0/0/0/0,prev_2day_heat=4/5/4/4/5/4/5/4/5/5/4/5/4/3/4/2/2/2/0/0/0/0/0/0,prev_3day_heat=4/4/4/3/3/4/3/4/3/5/4/5/4/3/3/2/2/2/3/4/3/3/4/5,prev_4day_heat=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/2/3/3/4/3,prev_5day_heat=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_6day_heat=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,curr_day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_1day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_2day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_3day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_4day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_5day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0,prev_6day_cool=0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0"
 
 powers = parse_response(POWER_RESPONSE, 'curr_day_heat')['curr_day_heat']
 assert powers == "0/0/0/0/0/0/0/0/0/0/0/3/2/2/3/0/0/0/0/0/0/0/0/0"
@@ -68,6 +76,7 @@ powers = "0/0/0/0/0/0/0/0/0/0/0/3/2/2/3/9/0/0/0/0/0/0/0/0"
 assert power_2_energy(powers, datetime(1900, 12, 31, 15)) == 1.0
 assert power_2_energy(powers, datetime(1900, 12, 31, 16)) == 1.9
 
+
+SENSOR_RESPONSE = b"ret=OK,htemp=23.0,hhum=-,otemp=16.0,err=10000,cmpfreq=16"
+
 assert parse_response(SENSOR_RESPONSE) == {'otemp': '16.0', 'hhum': '-', 'err': '10000', 'cmpfreq': '16', 'ret': 'OK', 'htemp': '23.0'}
-assert parse_response(INFO_RESPONSE) == {'pow': '0', 'grp_name': '', 'port': '30051', 'adp_kind': '2', 'ver': '3_3_1', 'pw': '', 'dst': '1', 'ret': 'OK', 'id': '', 'en_setzone': '1', 'location': '0', 'en_grp': '0', 'cpv_minor': '20', 'en_hol': '0', 'type': 'aircon', 'method': 'home only', 'led': '1', 'mac': 'A0CC2BD73D31', 'lpw_flag': '0', 'pv': '3.20', 'icon': '5', 'name': 'werkplaats', 'err': '0', 'adp_mode': 'run', 'reg': 'eu', 'cpv': '3'}
-assert parse_response(INFO_RESPONSE, 'name', 'mac') == {'name': 'werkplaats', 'mac': 'A0CC2BD73D31'}
